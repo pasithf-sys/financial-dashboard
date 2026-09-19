@@ -1494,6 +1494,20 @@
       host.appendChild(row);
     });
   }
+  function updateGoalRowDisplays() {
+    state.goals.forEach(function (g) {
+      var row = document.querySelector('#goalRows .row-item[data-id="' + g.id + '"]');
+      if (!row) return;
+      var res = goalRequiredMonthly(g);
+      var progressPct = g.target > 0 ? clamp(g.existing / g.target * 100, 0, 100) : 0;
+      var labelEl = row.querySelector(".goal-row-summary span:first-child");
+      var reqEl = row.querySelector(".goal-row-summary .req");
+      var fillEl = row.querySelector(".progress-fill");
+      if (labelEl) labelEl.textContent = res.met ? "ถึงเป้าหมายแล้วจากเงินที่มี" : "ต้องออมเพิ่มเดือนละ";
+      if (reqEl) reqEl.textContent = res.met ? "✓" : fmtBaht(res.required);
+      if (fillEl) fillEl.style.width = progressPct + "%";
+    });
+  }
   document.getElementById("goalRows").addEventListener("input", function (e) {
     var row = e.target.closest(".row-item");
     if (!row) return;
@@ -1502,9 +1516,8 @@
     var g = state.goals.find(function (x) { return x.id === id; });
     if (!g) return;
     g[field] = field === "name" ? e.target.value : (parseFloat(e.target.value) || 0);
-    renderGoalRows();
+    updateGoalRowDisplays();
     recomputeAll();
-    // restore focus after re-render
   });
   document.getElementById("goalRows").addEventListener("click", function (e) {
     var btn = e.target.closest(".row-remove-btn");
